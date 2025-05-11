@@ -1,0 +1,17 @@
+# Node.js
+node_modules/
+
+# Python
+venv/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Other
+uploads/
+dist/
+.env
