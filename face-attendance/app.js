@@ -6,6 +6,14 @@ const mysql = require('mysql2');
 const faceapi = require('face-api.js');
 const canvas = require('canvas');
 const cors = require('cors');
+require('dotenv').config();
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Patch face-api with canvas
 const { Canvas, Image, ImageData } = canvas;
@@ -40,15 +48,23 @@ app.post('/register', upload.single('faceImage'), async (req, res) => {
   const { name, details } = req.body;
 
   try {
-    const imagePath = path.join(__dirname, req.file.path);
-    const image = await canvas.loadImage(imagePath);
+
+    
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'face-images',
+    });
+
+    const imageUrl = result.secure_url;
+
+    // Now load the image from Cloudinary for face recognition
+    const image = await canvas.loadImage(imageUrl);
 
     const detection = await faceapi
       .detectSingleFace(image)
       .withFaceLandmarks()
       .withFaceDescriptor();
 
-    fs.unlinkSync(imagePath); // delete uploaded image
+    fs.unlinkSync(req.file.path); // delete uploaded image
 
     if (!detection) return res.send('No face detected');
 
